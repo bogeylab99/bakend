@@ -1,6 +1,8 @@
 from app import db  # Import db from app/__init__.py
 
 class User(db.Model):
+    __tablename__ = "users"  # Explicit table name
+    
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
@@ -8,18 +10,22 @@ class User(db.Model):
     role = db.Column(db.String(20), nullable=False)
     is_active = db.Column(db.Boolean, default=True)
 
-    
-    stores = db.relationship('Store', backref='merchant', lazy=True)
-    supply_requests = db.relationship('SupplyRequest', backref='clerk', foreign_keys='SupplyRequest.requested_by')
+    # Specify foreign_keys to resolve ambiguity
+    stores = db.relationship('Store', backref='merchant', lazy=True, foreign_keys='Store.merchant_id')
+    supply_requests = db.relationship('SupplyRequest', backref='clerk', lazy=True, foreign_keys='SupplyRequest.requested_by')
 
     def __repr__(self):
         return f'<User {self.username}>'
 
 
 class Store(db.Model):
+    __tablename__ = "stores"
+    
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
-    merchant_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    
+    # Foreign key to User (Merchant)
+    merchant_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
 
     # Relationships
     products = db.relationship('Product', backref='store', lazy=True)
@@ -29,6 +35,8 @@ class Store(db.Model):
 
 
 class Product(db.Model):
+    __tablename__ = "products"
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     buying_price = db.Column(db.Float, nullable=False)
@@ -36,7 +44,8 @@ class Product(db.Model):
     stock_quantity = db.Column(db.Integer, nullable=False)
     spoiled_quantity = db.Column(db.Integer, default=0)
     payment_status = db.Column(db.String(20), nullable=False, default='not paid')
-    store_id = db.Column(db.Integer, db.ForeignKey('store.id'), nullable=False)
+
+    store_id = db.Column(db.Integer, db.ForeignKey('stores.id'), nullable=False)
 
     # Relationships
     supply_requests = db.relationship('SupplyRequest', backref='product', lazy=True)
@@ -46,11 +55,15 @@ class Product(db.Model):
 
 
 class SupplyRequest(db.Model):
+    __tablename__ = "supply_requests"
+    
     id = db.Column(db.Integer, primary_key=True)
-    product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
+    product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
     quantity_requested = db.Column(db.Integer, nullable=False)
     status = db.Column(db.String(20), nullable=False, default='pending')
-    requested_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+    # Correct Foreign Key Reference
+    requested_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
 
     def __repr__(self):
         return f'<SupplyRequest {self.id} - {self.status}>'
