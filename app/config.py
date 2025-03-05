@@ -1,22 +1,28 @@
 import os
 from dotenv import load_dotenv
 
-# Load environment variables from a .env file
-load_dotenv()
+# ✅ Ensure .env file is loaded
+dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
+if os.path.exists(dotenv_path):
+    load_dotenv(dotenv_path)
+else:
+    print("⚠️ Warning: .env file not found!")
 
 class Config:
     """Base configuration with default settings."""
     
-    SECRET_KEY = os.environ.get('SECRET_KEY', 'fallback_secret_key')  
+    SECRET_KEY = os.getenv('SECRET_KEY', 'fallback_secret_key')  
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    DATABASE_URL = os.environ.get('DATABASE_URL', 'sqlite:///default.db')
+    DATABASE_URL = os.getenv('DATABASE_URL', 'sqlite:///default.db')
+
+    # ✅ Fix PostgreSQL URL format
     if DATABASE_URL.startswith("postgres://"):
         DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://")
     
     SQLALCHEMY_DATABASE_URI = DATABASE_URL
 
-    BCRYPT_LOG_ROUNDS = int(os.environ.get('BCRYPT_LOG_ROUNDS', 12))  # For password hashing
-    JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY', 'fallback_jwt_secret')  # Needed for JWT-based auth
+    BCRYPT_LOG_ROUNDS = int(os.getenv('BCRYPT_LOG_ROUNDS', 12))  # Password hashing rounds
+    JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY', SECRET_KEY)  # Use same SECRET_KEY for JWT if not set
 
     DEBUG = False  
 

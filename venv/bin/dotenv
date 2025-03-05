@@ -1,4 +1,6 @@
-#!/home/kelvin/Development/My-Duka-Project/bakend/venv/bin/python3.12
+#!/bin/sh
+'''exec' "/home/kelvin/Development/backup /bakend/venv/bin/python3" "$0" "$@"
+' '''
 # -*- coding: utf-8 -*-
 import re
 import sys
